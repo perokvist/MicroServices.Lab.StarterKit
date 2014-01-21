@@ -33,3 +33,17 @@ In the Setup you'll find register and how to create a bus for message consumtion
 ###Lab.Web
 
 The web project is responsible for hosting your endpoints. This might be HTTP Apis or plain HTML views to show service data.
+
+###Getting Started
+
+1. You need publishing info for your cloud service
+1.1 Create a cloud service
+1.2 Download publishing info
+1.3 Setup info for your project
+
+2. The Queue need a connection
+2.1 In setup, configure your connection
+
+3. Register the service
+3.1 In Setup you configure the registration
+
