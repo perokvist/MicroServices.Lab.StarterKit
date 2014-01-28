@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -39,19 +40,21 @@ namespace Lab.Worker.Infrastructure
             var consumer = new QueueingBasicConsumer(channel);
             channel.BasicConsume(queueName, true, consumer);
 
-            Task.Run(() => ReceiveAsync(onMessage, x => channel.BasicAck(x, false), consumer));
+            var cts = new CancellationTokenSource();
+            Task.Run(() => ReceiveAsync(onMessage, x => channel.BasicAck(x, false), consumer, cts.Token));
 
             return new DisposableAction(() =>
             {
                 Trace.TraceInformation("Aborting {0}", exchangeName);
+                cts.Cancel();
                 channel.Abort();
             });
         }
 
-        private static async Task ReceiveAsync(Func<string, Task> onMessage, Action<ulong> ack, QueueingBasicConsumer consumer)
+        private static async Task ReceiveAsync(Func<string, Task> onMessage, Action<ulong> ack, QueueingBasicConsumer consumer, CancellationToken token)
         {
             Trace.TraceInformation("Listening for messages....");
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 var e = (RabbitMQ.Client.Events.BasicDeliverEventArgs) consumer.Queue.Dequeue();
                 var json = System.Text.Encoding.UTF8.GetString(e.Body);
