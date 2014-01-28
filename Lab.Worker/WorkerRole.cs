@@ -1,18 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using EasyNetQ;
-using Lab.Worker.Infrastructure;
-using Lab.Worker.Messages;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Diagnostics;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using Microsoft.WindowsAzure.Storage;
-using RabbitMQ.Client;
 
 namespace Lab.Worker
 {
