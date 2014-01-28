@@ -16,7 +16,7 @@ The worker role consumes messages, and may publish new ones. The web role could 
 for your service or/and HTTP apis your service might expose.
 
 You could host these kind of services in your worker role, you also could let your web site do stuff in the background(iick), 
-but to get started you got two roles.
+but to get started you got two roles. The new WebJob could have been used as well...
 
 You could also skip the web role and use Web Sites, your pick!
 
@@ -41,7 +41,7 @@ The web project is responsible for hosting your endpoints. This might be HTTP Ap
 1.2 Download publishing info
 1.3 Setup info for your project
 
-2. The Queue need a connection
+2. The Queue needs a connection
 2.1 In setup, configure your connection
 
 3. Register the service

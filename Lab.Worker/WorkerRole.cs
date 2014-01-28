@@ -18,12 +18,12 @@ namespace Lab.Worker
 {
     public class WorkerRole : RoleEntryPoint
     {
+
         public override void Run()
         {
             Trace.TraceInformation("Lab.Worker entry point called", "Information");
-            var bus = Setup.CreateBus();
-            bus.SubscribeAsync<GameCreatedEvent>("yourId", s => Task.FromResult(0));
-            bus.PublishAsync(new YourMessage());
+            
+            base.Run();
         }
 
         public override bool OnStart()
