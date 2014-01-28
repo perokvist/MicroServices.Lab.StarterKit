@@ -31,12 +31,13 @@ namespace Lab.Worker
         }
 
 
-        public static Object ServiceOnlineEvent(String serviceId, String name, String entryPoint, String createdBy) {
+        public static Object ServiceOnlineEvent(String serviceId, String description, String createdBy, String serviceUrl, string sourceUrl) {
             var body = new Dictionary<string, object>
             {
-                {"name", name},
+                {"description", description},
                 {"createdBy", createdBy},
-                {"entryPoint", entryPoint}
+                {"serviceUrl", serviceUrl},
+                {"sourceUrl", sourceUrl}
             };
             return CreateMessage(serviceId, "ServiceOnlineEvent", body);
         }
@@ -51,6 +52,14 @@ namespace Lab.Worker
             return CreateMessage(serviceId, "ServiceOfflineEvent", body);
         }
 
+        public enum LogLevel
+        {
+            TRACE,
+            DEBUG,
+            INFO,
+            WARN,
+            ERROR
+        }
 
         private static Object CreateMessage(String streamId, String type, IDictionary<String, Object> body) {
             var meta = new Dictionary<string, object>();
@@ -60,6 +69,7 @@ namespace Lab.Worker
                 {"body", body},
                 {"streamId", streamId},
                 {"createdAt", DateTime.UtcNow.Ticks},
+                {"messageId", Guid.NewGuid().ToString()},
                 {"meta", meta}
             };
             return message;

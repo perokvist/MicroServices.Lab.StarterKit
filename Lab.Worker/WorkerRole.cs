@@ -1,6 +1,11 @@
+using System;
 using System.Diagnostics;
 using System.Net;
+using System.Threading.Tasks;
+using Lab.Worker.Infrastructure;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace Lab.Worker
 {
@@ -11,7 +16,24 @@ namespace Lab.Worker
         {
             Trace.TraceInformation("Lab.Worker entry point called", "Information");
             
-            base.Run();
+            //Demo code
+
+            //Connection
+            var rabbitConnectionFactory = new ConnectionFactory
+            {
+                Uri = "uri given to you"
+            };
+            var connection = rabbitConnectionFactory.CreateConnection();
+            
+            //Publish
+            var publisher = MQ.CreatePublisherOn<object>(connection, "lab", "service");
+            publisher(Messages.ServiceOnlineEvent(Guid.NewGuid().ToString(), "Test Service", "you", "jayway.com", "github.com"));
+            
+            //Recive
+            MQ.StartReceivingOn(connection, "lab", "log", "sub1", json => Task.Run(() => Trace.TraceInformation("Handling message: {0}", json)));
+
+
+            base.Run(); //Do not remove, when run retuns woker is recycled.
         }
 
         public override bool OnStart()

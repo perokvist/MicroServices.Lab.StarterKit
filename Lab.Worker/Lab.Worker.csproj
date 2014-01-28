@@ -78,7 +78,6 @@
   <ItemGroup>
     <Compile Include="Infrastructure\DisposableAction.cs" />
     <Compile Include="Infrastructure\Mq.cs" />
-    <Compile Include="LogLevel.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WorkerRole.cs" />

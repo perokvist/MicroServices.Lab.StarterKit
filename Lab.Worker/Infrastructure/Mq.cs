@@ -11,33 +11,35 @@ namespace Lab.Worker.Infrastructure
     {
         public static Action<T> CreatePublisherOn<T>(IConnection connection, string exchangeName, string routingKey)
         {
-            var channel = connection.CreateModel();
-            channel.ExchangeDeclare(exchangeName, "topic");
-
+            IModel channel = null;
+            try
+            {
+                channel = connection.CreateModel();
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceInformation("Could not create model: {0}", ex.Message);
+                throw;
+            }
+            
             return message =>
             {
-                var jsonMessage = JsonConvert.SerializeObject(message, new JsonSerializerSettings
-                {
-                    Formatting = Formatting.None,
-                    ContractResolver = new CamelCasePropertyNamesContractResolver()
-                });
+                var jsonMessage = JsonConvert.SerializeObject(message);
                 Trace.TraceInformation("Publishing {0} to {1}", message.GetType(), routingKey);
                 channel.BasicPublish(exchangeName, routingKey, null, System.Text.Encoding.UTF8.GetBytes(jsonMessage));
             };
         }
 
-        public static IDisposable StartReceivingOn(IConnection connection, string exchangeName, string routingKey, Func<byte[], Task> onMessage)
+        public static IDisposable StartReceivingOn(IConnection connection, string exchangeName, string routingKey, string subscriptionName, Func<string, Task> onMessage)
         {
             var channel = connection.CreateModel();
-
-            channel.ExchangeDeclare(exchangeName, "topic");
-            var queueName = channel.QueueDeclare("receive", true, false, false, null).QueueName;
+            var queueName = channel.QueueDeclare(subscriptionName, true, false, false, null).QueueName;
             channel.QueueBind(queueName, exchangeName, routingKey);
 
             var consumer = new QueueingBasicConsumer(channel);
             channel.BasicConsume(queueName, true, consumer);
 
-            ReceiveAsync(onMessage, x => channel.BasicAck(x, false), consumer); // Fire and forget
+            Task.Run(() => ReceiveAsync(onMessage, x => channel.BasicAck(x, false), consumer));
 
             return new DisposableAction(() =>
             {
@@ -46,14 +48,19 @@ namespace Lab.Worker.Infrastructure
             });
         }
 
-        private static async Task ReceiveAsync(Func<byte[], Task> onMessage, Action<ulong> ack, QueueingBasicConsumer consumer)
+        private static async Task ReceiveAsync(Func<string, Task> onMessage, Action<ulong> ack, QueueingBasicConsumer consumer)
         {
+            Trace.TraceInformation("Listening for messages....");
             while (true)
             {
-                var e = (RabbitMQ.Client.Events.BasicDeliverEventArgs)consumer.Queue.Dequeue();
-                Trace.TraceInformation("Received on {1} Message: {0}", e.Body, e.RoutingKey);
-                await onMessage(e.Body);
+                var e = (RabbitMQ.Client.Events.BasicDeliverEventArgs) consumer.Queue.Dequeue();
+                var json = System.Text.Encoding.UTF8.GetString(e.Body);
+                Trace.TraceInformation("Received on message {1} . Message: {0}", json, e.RoutingKey);
+                await onMessage(json); 
+                Trace.TraceInformation("Ready to ack message on {0}", e.RoutingKey);
                 ack(e.DeliveryTag);
+                Trace.TraceInformation("Acked message on {0}", e.RoutingKey);
+
             }
         }
     }

@@ -36,14 +36,15 @@ The web project is responsible for hosting your endpoints. This might be HTTP Ap
 
 ###Getting Started
 
-1. You need publishing info for your cloud service
+1. You need publishing info for your cloud service (localy use the emulator)
+(possible to skip until you have something to publish...)
 1.1 Create a cloud service
 1.2 Download publishing info
 1.3 Setup info for your project
 
 2. The Queue needs a connection
-2.1 In setup, configure your connection
+2.1 Set uri for the connection factory
 
 3. Register the service
-3.1 In Setup you configure the registration
+3.1 Send a message to the registry
 
