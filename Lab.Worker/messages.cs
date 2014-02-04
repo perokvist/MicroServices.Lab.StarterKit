@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Framing.v0_9_1;
 
 namespace Lab.Worker
 {
     public class Messages
     {
 
-        public static Object GameCreatedEvent(String gameId, String createdBy, IEnumerable<String> players)
+        public static Envelope GameCreatedEvent(String gameId, String createdBy, IEnumerable<String> players)
         {
             var body = new Dictionary<string, object>
             {
@@ -20,7 +23,8 @@ namespace Lab.Worker
         }
 
 
-        public static Object GameEndedEvent(String gameId, IDictionary<String, int> scores) {
+        public static Envelope GameEndedEvent(String gameId, IDictionary<String, int> scores)
+        {
             var body = new Dictionary<string, object>
             {
                 {"scores", scores},
@@ -31,7 +35,8 @@ namespace Lab.Worker
         }
 
 
-        public static Object ServiceOnlineEvent(String serviceId, String description, String createdBy, String serviceUrl, string sourceUrl) {
+        public static Envelope ServiceOnlineEvent(String serviceId, String description, String createdBy, String serviceUrl, string sourceUrl)
+        {
             var body = new Dictionary<string, object>
             {
                 {"description", description},
@@ -42,12 +47,14 @@ namespace Lab.Worker
             return CreateMessage(serviceId, "ServiceOnlineEvent", body);
         }
 
-        public static Object LogEvent(String serviceId, LogLevel level, String context, String message) {
-            var body = new Dictionary<string,object> {{"level", level.ToString()}, {"context", context}, {"message", message}};
+        public static Envelope LogEvent(String serviceId, LogLevel level, String context, String message)
+        {
+            var body = new Dictionary<string, object> { { "level", level.ToString() }, { "context", context }, { "message", message } };
             return CreateMessage(serviceId, "LogEvent", body);
         }
 
-        public static Object ServiceOfflineEvent(String serviceId)  {
+        public static Envelope ServiceOfflineEvent(String serviceId)
+        {
             var body = new Dictionary<string, object>();
             return CreateMessage(serviceId, "ServiceOfflineEvent", body);
         }
@@ -61,18 +68,24 @@ namespace Lab.Worker
             ERROR
         }
 
-        private static Object CreateMessage(String streamId, String type, IDictionary<String, Object> body) {
-            var meta = new Dictionary<string, object>();
-            var message = new Dictionary<String, Object>
+        private static Envelope CreateMessage(String streamId, String type, IDictionary<String, Object> body)
+        {
+            var meta = new BasicProperties
             {
-                {"type", type},
-                {"body", body},
-                {"streamId", streamId},
-                {"createdAt", DateTime.UtcNow.Ticks},
-                {"messageId", Guid.NewGuid().ToString()},
-                {"meta", meta}
+                AppId = Assembly.GetExecutingAssembly().GetName().Name,
+                Type = type,
+                MessageId = Guid.NewGuid().ToString(),
+                Timestamp = new AmqpTimestamp(DateTime.UtcNow.Ticks)
             };
-            return message;
+
+            meta.Headers.Add("streamId", streamId);
+            
+            return new Envelope() { Body = body, Meta = meta };
         }
+    }
+    public class Envelope
+    {
+        public object Body { get; set; }
+        public IBasicProperties Meta { get; set; }
     }
 }

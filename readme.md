@@ -48,3 +48,5 @@ The web project is responsible for hosting your endpoints. This might be HTTP Ap
 3. Register the service
 3.1 Send a message to the registry
 
+
+

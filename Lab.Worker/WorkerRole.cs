@@ -26,11 +26,11 @@ namespace Lab.Worker
             var connection = rabbitConnectionFactory.CreateConnection();
             
             //Publish
-            var publisher = MQ.CreatePublisherOn<object>(connection, "lab", "service");
+            var publisher = MQ.CreatePublisherOn(connection, "lab", "service");
             publisher(Messages.ServiceOnlineEvent(Guid.NewGuid().ToString(), "Test Service", "you", "jayway.com", "github.com"));
             
             //Recive
-            MQ.StartReceivingOn(connection, "lab", "log", "sub1", json => Task.Run(() => Trace.TraceInformation("Handling message: {0}", json)));
+            MQ.StartReceivingOn(connection, "lab", "log", "sub1", (meta, json) => Task.Run(() => Trace.TraceInformation("Handling message: {0}", json)));
 
 
             base.Run(); //Do not remove, when run retuns woker is recycled.
