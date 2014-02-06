@@ -21,21 +21,21 @@ namespace Lab.Worker
             //Connection
             var rabbitConnectionFactory = new ConnectionFactory
             {
-                Uri = "uri given to you"
+                Uri = "will be given to you"
             };
             var connection = rabbitConnectionFactory.CreateConnection();
             
             //Publish
             var publisher = MQ.CreatePublisherOn(connection, "lab", "service");
-            publisher(Messages.ServiceOnlineEvent(Guid.NewGuid().ToString(), "Test Service", "you", "jayway.com", "github.com"));
+            publisher(Messages.ServiceOnlineEvent("serviceName", "Test Service", "you", "jayway.com", "github.com"));
             
             //Recive
-            MQ.StartReceivingOn(connection, "lab", "log", "sub1", (meta, json) => Task.Run(() => Trace.TraceInformation("Handling message: {0}", json)));
-
+            MQ.StartReceivingOn(connection, "lab", "service", "sub1", (meta, json) => Task.Run(() => Trace.TraceInformation("Handling message: {0}", json)));
 
             base.Run(); //Do not remove, when run retuns woker is recycled.
         }
 
+        
         public override bool OnStart()
         {
             // Set the maximum number of concurrent connections 

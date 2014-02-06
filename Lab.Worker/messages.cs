@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Reflection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing.v0_9_1;
@@ -75,11 +76,10 @@ namespace Lab.Worker
                 AppId = Assembly.GetExecutingAssembly().GetName().Name,
                 Type = type,
                 MessageId = Guid.NewGuid().ToString(),
-                Timestamp = new AmqpTimestamp(DateTime.UtcNow.Ticks)
+                Timestamp = new AmqpTimestamp(DateTime.UtcNow.Ticks),
+                Headers = new ListDictionary {{"streamId", streamId}}
             };
 
-            meta.Headers.Add("streamId", streamId);
-            
             return new Envelope() { Body = body, Meta = meta };
         }
     }

@@ -32,14 +32,14 @@ namespace Lab.Worker.Infrastructure
             };
         }
 
-        public static IDisposable StartReceivingOn(IConnection connection, string exchangeName, string routingKey, string subscriptionName, Func<IBasicProperties, string, Task> onMessage)
+        public static IDisposable StartReceivingOn(IConnection connection, string exchangeName, string routingKey, string queueName, Func<IBasicProperties, string, Task> onMessage)
         {
             var channel = connection.CreateModel();
-            var queueName = channel.QueueDeclare(subscriptionName, true, false, false, null).QueueName;
-            channel.QueueBind(queueName, exchangeName, routingKey);
+            var name = channel.QueueDeclare(queueName, true, false, false, null).QueueName;
+            channel.QueueBind(name, exchangeName, routingKey);
 
             var consumer = new QueueingBasicConsumer(channel);
-            channel.BasicConsume(queueName, true, consumer);
+            channel.BasicConsume(name, false, consumer);
 
             var cts = new CancellationTokenSource();
             Task.Run(() => ReceiveAsync(onMessage, x => channel.BasicAck(x, false), consumer, cts.Token));
